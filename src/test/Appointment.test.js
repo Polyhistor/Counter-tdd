@@ -1,56 +1,53 @@
 import React from "react";
 import ReactDOM from "react-dom";
 import ReactTestUtils from "react-dom/test-utils";
-
-import Appointment from "../appointment";
-import AppointmentsDayView from "../appointmentsdayview";
+import { Appointment, AppointmentsDayView } from "../AppointmentsDayView";
 
 describe("Appointment", () => {
   let container;
   let customer;
-  const today = new Date();
-
-  const render = component => ReactDOM.render(component, container);
 
   beforeEach(() => {
     container = document.createElement("div");
   });
 
-  const appointments = [
-    { startsAt: today.setHours(12, 0) },
-    { startsAt: today.setHours(13, 0) }
-  ];
+  const render = component => ReactDOM.render(component, container);
+
   it("renders the customer first name", () => {
     customer = { firstName: "Ashley" };
-    render(<Appointment customer={customer} appointments={appointments} />);
+    render(<Appointment customer={customer} />);
     expect(container.textContent).toMatch("Ashley");
   });
 
-  it("renders the customer first name", () => {
+  it("renders another customer first name", () => {
     customer = { firstName: "Jordan" };
-    render(<Appointment customer={customer} appointments={appointments} />);
+    render(<Appointment customer={customer} />);
     expect(container.textContent).toMatch("Jordan");
   });
 });
 
 describe("AppointmentsDayView", () => {
-  // helper variables
-  let container;
   const today = new Date();
+  const appointments = [
+    {
+      startsAt: today.setHours(12, 0),
+      customer: { firstName: "Ashley" }
+    },
+    {
+      startsAt: today.setHours(13, 0),
+      customer: { firstName: "Jordan" }
+    }
+  ];
+  let container;
 
-  // helper functions
   beforeEach(() => {
     container = document.createElement("div");
   });
+
   const render = component => ReactDOM.render(component, container);
-  const appointments = [
-    { startsAt: today.setHours(12, 0), customer: { firstName: "Ashley" } },
-    { startsAt: today.setHours(13, 0), customer: { firstName: "Ashley" } }
-  ];
 
   it("renders a div with the right id", () => {
     render(<AppointmentsDayView appointments={[]} />);
-
     expect(container.querySelector("div#appointmentsDayView")).not.toBeNull();
   });
 
@@ -70,8 +67,13 @@ describe("AppointmentsDayView", () => {
   it("initially shows a message saying there are no appointments today", () => {
     render(<AppointmentsDayView appointments={[]} />);
     expect(container.textContent).toMatch(
-      "There are no appointments scheduled for today"
+      "There are no appointments scheduled for today."
     );
+  });
+
+  it("selects the first appointment by default", () => {
+    render(<AppointmentsDayView appointments={appointments} />);
+    expect(container.textContent).toMatch("Ashley");
   });
 
   it("has a button element in each li", () => {
@@ -80,7 +82,7 @@ describe("AppointmentsDayView", () => {
     expect(container.querySelectorAll("li > button")[0].type).toEqual("button");
   });
 
-  it.skip("renders another appointment when selected", () => {
+  it("renders another appointment when selected", () => {
     render(<AppointmentsDayView appointments={appointments} />);
     const button = container.querySelectorAll("button")[1];
     ReactTestUtils.Simulate.click(button);
