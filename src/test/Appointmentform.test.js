@@ -1,6 +1,7 @@
 import React from "react";
 import { createContainer } from "./domManipulators";
 import { AppointmentForm } from "../AppointmentForm";
+import ReactTestUtils from "react-dom/test-utils";
 
 describe("AppointmentForm", () => {
   let render, container;
@@ -15,6 +16,7 @@ describe("AppointmentForm", () => {
     const options = Array.from(dropdownNode.childNodes);
     return options.find(option => option.textContent === textContent);
   };
+  const labelFor = text => container.querySelector(`label[for="${text}"]`);
 
   it("renders a form", () => {
     render(<AppointmentForm />);
@@ -48,10 +50,31 @@ describe("AppointmentForm", () => {
     it("pre-selects the existing value", () => {
       const services = ["Cut", "Blow-dry"];
       render(
-        <AppointmentForm selectableServices={services} service="Blow-Dry" />
+        <AppointmentForm selectableServices={services} service="Blow-dry" />
       );
-      const option = findOption(field("service"), "Blow-Dry");
-      expect(option.selected).tobeTruthy();
+      const option = findOption(field("service"), "Blow-dry");
+      expect(option.selected).toBeTruthy();
+    });
+
+    it("renders a label", () => {
+      render(<AppointmentForm />);
+      expect(labelFor("service").textContent).toEqual("Select a service");
+    });
+
+    it("assigns and id that matches the label", () => {
+      render(<AppointmentForm />);
+      expect(labelFor("service").htmlFor).toEqual(field("service").id);
+    });
+
+    it("saves existing value when submitted", async () => {
+      expect.hasAssertions();
+      render(
+        <AppointmentForm
+          {...{ service: "Blow-dry" }}
+          onSubmit={service => expect(service).toEqual("Blow-dry")}
+        />
+      );
+      await ReactTestUtils.Simulate.submit(form("appointment"));
     });
   });
 });
