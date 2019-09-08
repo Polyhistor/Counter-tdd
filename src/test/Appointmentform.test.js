@@ -10,6 +10,7 @@ describe("AppointmentForm", () => {
     ({ render, container } = createContainer());
   });
 
+  // helper functions
   const form = id => container.querySelector(`form[id="${id}"]`);
   const field = name => form("appointment").elements[name];
   const findOption = (dropdownNode, textContent) => {
@@ -17,6 +18,7 @@ describe("AppointmentForm", () => {
     return options.find(option => option.textContent === textContent);
   };
   const labelFor = text => container.querySelector(`label[for="${text}"]`);
+  const timeSlotTable = () => container.querySelector("table#time-slots");
 
   it("renders a form", () => {
     render(<AppointmentForm />);
@@ -70,11 +72,61 @@ describe("AppointmentForm", () => {
       expect.hasAssertions();
       render(
         <AppointmentForm
-          {...{ service: "Blow-dry" }}
-          onSubmit={service => expect(service).toEqual("Blow-dry")}
+          service="Blow-dry"
+          onSubmit={({ service }) => expect(service).toEqual("Blow-dry")}
         />
       );
       await ReactTestUtils.Simulate.submit(form("appointment"));
+    });
+
+    it("saves a new value when submitted", async () => {
+      expect.hasAssertions();
+      render(
+        <AppointmentForm
+          service="blow-dry"
+          onSubmit={({ service }) => expect(service).toEqual("Cut")}
+        />
+      );
+
+      await ReactTestUtils.Simulate.change(field("service"), {
+        target: { value: "Cut", name: "service" }
+      });
+
+      await ReactTestUtils.Simulate.submit(form("appointment"));
+    });
+
+    describe("time slot table", () => {
+      it("renders a table for time slots", () => {
+        render(<AppointmentForm />);
+        expect(container.querySelector("table#time-slots")).not.toBeNull();
+      });
+
+      it("renders a time slot for every half and hour between open and close times", () => {
+        render(<AppointmentForm salonOpensAt={9} salonClosesAt={11} />);
+        const timesOfDay = timeSlotTable().querySelectorAll("tbody >* th");
+        expect(timesOfDay).toHaveLength(4);
+        expect(timesOfDay[0].textContent).toEqual("09:00");
+        expect(timesOfDay[1].textContent).toEqual("09:30");
+        expect(timesOfDay[3].textContent).toEqual("10:30");
+      });
+
+      it("renders an empty cell at the start of the header row", () => {
+        render(<AppointmentForm />);
+        const headerRow = timeSlotTable().querySelector("thead > tr");
+        expect(headerRow.firstChild.textContent).toEqual("");
+      });
+
+      it("renders a week of available dates", () => {
+        const today = new Date(2018, 11, 1);
+        render(<AppointmentForm today={today} />);
+        const dates = timeSlotTable().querySelectorAll(
+          "thead >* th:not(:first-child)"
+        );
+        expect(dates).toHaveLength(7);
+        expect(dates[0].textContent).toEqual("Sat 01");
+        expect(dates[1].textContent).toEqual("Sun 02");
+        expect(dates[6].textContent).toEqual("Fri 07");
+      });
     });
   });
 });
