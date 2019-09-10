@@ -44,14 +44,28 @@ const mergeDateAndTime = (date, timeSlot) => {
 };
 
 // helper component for showing radio buttons or not
-const RadioButtonIfAvailable = ({ availableTimeSlots, date, timeSlot }) => {
+const RadioButtonIfAvailable = ({
+  availableTimeSlots,
+  date,
+  timeSlot,
+  checkedTimeSlot
+}) => {
   const startsAt = mergeDateAndTime(date, timeSlot);
+  const checked = checkedTimeSlot === startsAt;
   if (
     availableTimeSlots.some(
       availableTimeSlot => availableTimeSlot.startsAt === startsAt
     )
   ) {
-    return <input name="startsAt" type="radio" value={startsAt}></input>;
+    return (
+      <input
+        name="startsAt"
+        type="radio"
+        value={startsAt}
+        checked={checked}
+        readOnly
+      ></input>
+    );
   }
   return null;
 };
@@ -61,7 +75,8 @@ const TimeSlotTable = ({
   salonOpensAt,
   salonClosesAt,
   today,
-  availableTimeSlots
+  availableTimeSlots,
+  checkedTimeSlot
 }) => {
   const dates = weeklyDateValues(today);
   const timeSlots = dailyTimeSlots(salonOpensAt, salonClosesAt);
@@ -85,6 +100,7 @@ const TimeSlotTable = ({
                   availableTimeSlots={availableTimeSlots}
                   date={date}
                   timeSlot={timeSlot}
+                  checkedTimeSlot={checkedTimeSlot}
                 />
               </td>
             ))}
@@ -102,9 +118,11 @@ export const AppointmentForm = ({
   salonOpensAt,
   salonClosesAt,
   today,
-  availableTimeSlots
+  startsAt,
+  availableTimeSlots,
+  checkedTimeSlot
 }) => {
-  const [appointment, setAppointment] = useState({ service });
+  const [appointment, setAppointment] = useState({ service, startsAt });
 
   const handleServiceChange = ({ target }) => {
     setAppointment(appointment => ({
@@ -132,6 +150,7 @@ export const AppointmentForm = ({
         salonClosesAt={salonClosesAt}
         today={today}
         availableTimeSlots={availableTimeSlots}
+        checkedTimeSlot={checkedTimeSlot}
       />
     </form>
   );
