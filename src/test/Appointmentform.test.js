@@ -213,7 +213,7 @@ describe("AppointmentForm", () => {
 
         ReactTestUtils.Simulate.change(startsAtField(1), {
           target: {
-            value: availableTimeSlots[1].startsAt.toString(1),
+            value: availableTimeSlots[1].startsAt.toString(),
             name: "startsAt"
           }
         });
