@@ -1,13 +1,10 @@
 import React, { useState, useCallback } from "react";
 
-// function that creates weekly days
-const weeklyDateValues = startDate => {
-  const midnight = new Date(startDate).setHours(0, 0, 0, 0);
-  const increment = 24 * 60 * 60 * 1000;
-  return timeIncrements(7, midnight, increment);
-};
+const timeIncrements = (numTimes, startTime, increment) =>
+  Array(numTimes)
+    .fill([startTime])
+    .reduce((acc, _, i) => acc.concat([startTime + i * increment]));
 
-// function to fill an array of available time slots
 const dailyTimeSlots = (salonOpensAt, salonClosesAt) => {
   const totalSlots = (salonClosesAt - salonOpensAt) * 2;
   const startTime = new Date().setHours(salonOpensAt, 0, 0, 0);
@@ -15,24 +12,20 @@ const dailyTimeSlots = (salonOpensAt, salonClosesAt) => {
   return timeIncrements(totalSlots, startTime, increment);
 };
 
-// this is a helper function shared between week day generator and available slot generator
-const timeIncrements = (numTimes, startTime, increment) =>
-  Array(numTimes)
-    .fill([startTime])
-    .reduce((acc, _, i) => acc.concat([startTime + i * increment]));
+const weeklyDateValues = startDate => {
+  const midnight = new Date(startDate).setHours(0, 0, 0, 0);
+  const increment = 24 * 60 * 60 * 1000;
+  return timeIncrements(7, midnight, increment);
+};
 
-// function to extract hour and minutes
+const toShortDate = timestamp => {
+  const [day, , dayOfMonth] = new Date(timestamp).toDateString().split(" ");
+  return `${day} ${dayOfMonth}`;
+};
+
 const toTimeValue = timestamp =>
   new Date(timestamp).toTimeString().substring(0, 5);
 
-// helper function to take day and dayofMonth section of our date
-const toShortDate = timestamp => {
-  const [day, , dayofMonth] = new Date(timestamp).toDateString().split(" ");
-  return `${day} ${dayofMonth}`;
-};
-
-// helper function that takes date from column header together with a time stamp from a row header
-// and converts them into a time stamp
 const mergeDateAndTime = (date, timeSlot) => {
   const time = new Date(timeSlot);
   return new Date(date).setHours(
@@ -43,7 +36,6 @@ const mergeDateAndTime = (date, timeSlot) => {
   );
 };
 
-// helper component for showing radio buttons or not
 const RadioButtonIfAvailable = ({
   availableTimeSlots,
   date,
@@ -52,26 +44,21 @@ const RadioButtonIfAvailable = ({
   handleChange
 }) => {
   const startsAt = mergeDateAndTime(date, timeSlot);
-  const checked = checkedTimeSlot === startsAt;
-  if (
-    availableTimeSlots.some(
-      availableTimeSlot => availableTimeSlot.startsAt === startsAt
-    )
-  ) {
+  if (availableTimeSlots.some(a => a.startsAt === startsAt)) {
+    const isChecked = startsAt === checkedTimeSlot;
     return (
       <input
         name="startsAt"
         type="radio"
         value={startsAt}
-        checked={checked}
+        checked={isChecked}
         onChange={handleChange}
-      ></input>
+      />
     );
   }
   return null;
 };
 
-// our Timetable component
 const TimeSlotTable = ({
   salonOpensAt,
   salonClosesAt,
@@ -117,22 +104,27 @@ const TimeSlotTable = ({
 export const AppointmentForm = ({
   selectableServices,
   service,
+  selectableStylists,
+  stylist,
+  serviceStylists,
   onSubmit,
   salonOpensAt,
   salonClosesAt,
   today,
-  startsAt,
   availableTimeSlots,
-  checkedTimeSlot
+  startsAt
 }) => {
-  const [appointment, setAppointment] = useState({ service, startsAt });
+  const [appointment, setAppointment] = useState({
+    service,
+    startsAt,
+    stylist
+  });
 
-  const handleServiceChange = ({ target }) => {
+  const handleSelectBoxChange = ({ target: { value, name } }) =>
     setAppointment(appointment => ({
       ...appointment,
-      [target.name]: target.value
+      [name]: value
     }));
-  };
 
   const handleStartsAtChange = useCallback(
     ({ target: { value } }) =>
@@ -143,28 +135,54 @@ export const AppointmentForm = ({
     []
   );
 
+  const stylistsForService = appointment.service
+    ? serviceStylists[appointment.service]
+    : selectableStylists;
+
+  const timeSlotsForStylist = appointment.stylist
+    ? availableTimeSlots.filter(slot =>
+        slot.stylists.includes(appointment.stylist)
+      )
+    : availableTimeSlots;
+
   return (
     <form id="appointment" onSubmit={() => onSubmit(appointment)}>
-      <label htmlFor="service">Select a service</label>
+      <label htmlFor="service">Salon service</label>
       <select
-        onChange={handleServiceChange}
-        id="service"
         name="service"
+        id="service"
         value={service}
+        onChange={handleSelectBoxChange}
       >
         <option />
         {selectableServices.map(s => (
           <option key={s}>{s}</option>
         ))}
       </select>
+
+      <label htmlFor="stylist">Stylist</label>
+      <select
+        name="stylist"
+        id="stylist"
+        value={stylist}
+        onChange={handleSelectBoxChange}
+      >
+        <option />
+        {stylistsForService.map(s => (
+          <option key={s}>{s}</option>
+        ))}
+      </select>
+
       <TimeSlotTable
         salonOpensAt={salonOpensAt}
         salonClosesAt={salonClosesAt}
         today={today}
-        availableTimeSlots={availableTimeSlots}
-        checkedTimeSlot={checkedTimeSlot}
+        availableTimeSlots={timeSlotsForStylist}
+        checkedTimeSlot={appointment.startsAt}
         handleChange={handleStartsAtChange}
       />
+
+      <input type="submit" value="Add" />
     </form>
   );
 };
@@ -181,5 +199,14 @@ AppointmentForm.defaultProps = {
     "Beard trim",
     "Cut & beard trim",
     "Extensions"
-  ]
+  ],
+  selectableStylists: ["Ashley", "Jo", "Pat", "Sam"],
+  serviceStylists: {
+    Cut: ["Ashley", "Jo", "Pat", "Sam"],
+    "Blow-dry": ["Ashley", "Jo", "Pat", "Sam"],
+    "Cut & color": ["Ashley", "Jo"],
+    "Beard trim": ["Pat", "Sam"],
+    "Cut & beard trim": ["Pat", "Sam"],
+    Extensions: ["Ashley", "Pat"]
+  }
 };
