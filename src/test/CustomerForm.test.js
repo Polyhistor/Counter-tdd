@@ -3,6 +3,21 @@ import ReactTestUtils from "react-dom/test-utils";
 import { createContainer } from "./domManipulators";
 import { CustomerForm } from "../CustomerForm";
 
+const spy = () => {
+  let receivedArguments;
+  return {
+    fn: (...args) => (receivedArguments = args),
+    receivedArguments: () => receivedArguments,
+    receivedArgument: n => receivedArguments[n]
+  };
+};
+
+// expect.extend({
+//   toHaveBeenCalled(received) {
+//     if (recei)
+//   }
+// })
+
 describe("CustomerForm", () => {
   let render, container;
 
@@ -53,18 +68,15 @@ describe("CustomerForm", () => {
 
   const itSubmitsExistingValue = (fieldName, value) =>
     it("saves existing value when submitted", async () => {
-      let submitArg;
+      const submitSpy = spy();
 
       render(
-        <CustomerForm
-          {...{ [fieldName]: value }}
-          onSubmit={customer => (submitArg = customer)}
-        />
+        <CustomerForm {...{ [fieldName]: value }} onSubmit={submitSpy.fn} />
       );
       await ReactTestUtils.Simulate.submit(form("customer"));
 
-      expect(submitArg).toBeDefined();
-      expect(submitArg[fieldName]).toEqual(value);
+      expect(submitSpy.receivedArguments()).toBeDefined();
+      expect(submitSpy.receivedArgument(0)[fieldName]).toEqual(value);
     });
 
   const itSubmitsNewValue = fieldName =>
