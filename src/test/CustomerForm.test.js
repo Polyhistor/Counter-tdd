@@ -76,24 +76,31 @@ describe("CustomerForm", () => {
 
   const itSubmitsExistingValue = (fieldName, value) =>
     it("saves existing value when submitted", async () => {
-      const submitSpy = spy();
+      const fetchSpy = spy();
 
       render(
-        <CustomerForm {...{ [fieldName]: value }} onSubmit={submitSpy.fn} />
+        <CustomerForm
+          {...{ [fieldName]: value }}
+          fetch={fetchSpy.fn}
+          onSubmit={() => {}}
+        />
       );
+
       await ReactTestUtils.Simulate.submit(form("customer"));
 
-      expect(submitSpy).toHaveBeenCalled();
-      expect(submitSpy.receivedArgument(0)[fieldName]).toEqual(value);
+      const fetchOpts = fetchSpy.receivedArgument(1);
+      expect(JSON.parse(fetchOpts.body)[fieldName]).toEqual(value);
     });
 
   const itSubmitsNewValue = fieldName =>
     it("saves new value when submitted", async () => {
-      expect.hasAssertions();
+      const fetchSpy = spy();
+
       render(
         <CustomerForm
           {...{ [fieldName]: "existingValue" }}
-          onSubmit={props => expect(props[fieldName]).toEqual("newValue")}
+          fetch={fetchSpy.fn}
+          onSubmit={() => {}}
         />
       );
       await ReactTestUtils.Simulate.change(field(fieldName), {
@@ -135,9 +142,19 @@ describe("CustomerForm", () => {
     expect(submitButton).not.toBeNull();
   });
 
-  it("calls fetch with right properties when submitting data", async() => {
-    const fetchSpy = spy()
-    render(<CustomerForm fetch={fetchSpy.fn} onSubmit={()=> {}}></CustomerForm>)
-    
-  }
+  it("calls fetch with right properties when submitting data", async () => {
+    const fetchSpy = spy();
+    render(
+      <CustomerForm fetch={fetchSpy.fn} onSubmit={() => {}}></CustomerForm>
+    );
+    ReactTestUtils.Simulate.submit(form("customer"));
+
+    expect(fetchSpy).toHaveBeenCalled();
+    expect(fetchSpy.receivedArgument(0)).toEqual("/customers");
+
+    const fetchOpts = fetchSpy.receivedArgument(1);
+    expect(fetchOpts.method).toEqual("POST");
+    expect(fetchOpts.credentials).toEqual("same-origin");
+    expect(fetchOpts.headers).toEqual({ "Content-Type": "application/json" });
+  });
 });
