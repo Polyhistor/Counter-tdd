@@ -7,6 +7,6 @@ import { AppointmentForm } from "./AppointmentForm";
 
 ReactDOM.render(
   // <AppointmentsDayView appointments={sampleAppointments} />,
-  <AppointmentForm />,
+  <CustomerForm />,
   document.getElementById("root")
 );
