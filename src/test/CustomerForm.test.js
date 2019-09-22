@@ -8,37 +8,17 @@ import {
   requestBodyOf
 } from "./spyHelpers";
 
-// our general spy
-// const spy = () => {
-//   let returnValue;
-//   let receivedArguments;
-//   return {
-//     fn: (...args) => {
-//       receivedArguments = args;
-//       return returnValue;
-//     },
-//     receivedArguments: () => receivedArguments,
-//     receivedArgument: n => receivedArguments[n],
-//     stubReturnValue: value => (returnValue = value)
-//   };
-// };
-
 describe("CustomerForm", () => {
   let render, container;
 
   beforeEach(() => {
-    ({ render, container } = createContainer());
+    ({ render, container, form, field, labelFor, element } = createContainer());
     jest.spyOn(window, "fetch").mockReturnValue(fetchResponseOk({}));
   });
 
   afterEach(() => {
     window.fetch.mockRestore();
   });
-
-  const form = id => container.querySelector(`form[id="${id}"]`);
-  const field = name => form("customer").elements[name];
-  const labelFor = formElement =>
-    container.querySelector(`label[for="${formElement}"]`);
 
   it("renders a form", () => {
     render(<CustomerForm />);
@@ -54,13 +34,13 @@ describe("CustomerForm", () => {
   const itRendersAsATextBox = fieldName =>
     it("renders as a text box", () => {
       render(<CustomerForm />);
-      expectToBeInputFieldOfTypeText(field(fieldName));
+      expectToBeInputFieldOfTypeText(field("customer", fieldName));
     });
 
   const itIncludesTheExistingValue = fieldName =>
     it("includes the existing value", () => {
       render(<CustomerForm {...{ [fieldName]: "value" }} />);
-      expect(field(fieldName).value).toEqual("value");
+      expect(field("customer", fieldName).value).toEqual("value");
     });
 
   const itRendersALabel = (fieldName, text) =>
@@ -73,7 +53,7 @@ describe("CustomerForm", () => {
   const itAssignsAnIdThatMatchesTheLabelId = fieldName =>
     it("assigns an id that matches the label id", () => {
       render(<CustomerForm />);
-      expect(field(fieldName).id).toEqual(fieldName);
+      expect(field("customer", fieldName).id).toEqual(fieldName);
     });
 
   const itSubmitsExistingValue = (fieldName, value) =>
@@ -90,7 +70,7 @@ describe("CustomerForm", () => {
   const itSubmitsNewValue = fieldName =>
     it("saves new value when submitted", () => {
       render(<CustomerForm {...{ [fieldName]: "existingValue" }} />);
-      ReactTestUtils.Simulate.change(field(fieldName), {
+      ReactTestUtils.Simulate.change(field("customer", fieldName), {
         target: { value: "newValue", name: fieldName }
       });
       ReactTestUtils.Simulate.submit(form("customer"));
@@ -129,7 +109,7 @@ describe("CustomerForm", () => {
 
   it("has a submit button", () => {
     render(<CustomerForm />);
-    const submitButton = container.querySelector('input[type="submit"]');
+    const submitButton = element('input[type="submit"]');
     expect(submitButton).not.toBeNull();
   });
 
@@ -193,8 +173,7 @@ describe("CustomerForm", () => {
       ReactTestUtils.Simulate.submit(form("customer"));
     });
 
-    const errorElement = container.querySelector(".error");
-    expect(errorElement).not.toBeNull();
-    expect(errorElement.textContent).toMatch("error occured");
+    expect(element(".error")).not.toBeNull();
+    expect(element(".error").textContent).toMatch("error occured");
   });
 });
