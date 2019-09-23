@@ -1,20 +1,21 @@
 import React, { useState } from "react";
 
+const Error = () => <div className="error">An error occurred during save.</div>;
+
 export const CustomerForm = ({ firstName, lastName, phoneNumber, onSave }) => {
+  const [error, setError] = useState(false);
+
   const [customer, setCustomer] = useState({
     firstName,
     lastName,
     phoneNumber
   });
 
-  const [error, setError] = useState(false);
-
-  const handleChange = ({ target }) => {
+  const handleChange = ({ target }) =>
     setCustomer(customer => ({
       ...customer,
       [target.name]: target.value
     }));
-  };
 
   const handleSubmit = async e => {
     e.preventDefault();
@@ -61,12 +62,11 @@ export const CustomerForm = ({ firstName, lastName, phoneNumber, onSave }) => {
         value={phoneNumber}
         onChange={handleChange}
       />
+
       <input type="submit" value="Add" />
     </form>
   );
 };
-
-const Error = () => <div className="error">error occured</div>;
 
 CustomerForm.defaultProps = {
   onSave: () => {}
