@@ -2,7 +2,7 @@ import ReactDOM from "react-dom";
 import ReactTestUtils, { act } from "react-dom/test-utils";
 
 export const withEvent = (name, value) => ({
-  target: { name, value }
+  target: { name: name, value: value }
 });
 
 export const createContainer = () => {
@@ -13,7 +13,7 @@ export const createContainer = () => {
   const labelFor = formElement =>
     container.querySelector(`label[for="${formElement}"]`);
   const element = selector => container.querySelector(selector);
-  const elements = selector => Array.from(container.querySelectorAll);
+  const elements = selector => Array.from(container.querySelectorAll(selector));
   const simulateEvent = eventName => (element, eventData) =>
     ReactTestUtils.Simulate[eventName](element, eventData);
   const simulateEventAndAwait = eventName => async (element, eventData) =>
