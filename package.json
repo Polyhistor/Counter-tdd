@@ -2,6 +2,10 @@
   "name": "tdd-appointment",
   "version": "0.1.0",
   "private": true,
+  "jest": {
+    "verbose": true,
+    "automock": true
+  },
   "dependencies": {
     "react": "^16.9.0",
     "react-dom": "^16.9.0",

@@ -54,14 +54,16 @@ describe("CustomerForm", () => {
   });
 
   it("notifies onSave when form is submitted", async () => {
+    debugger;
+
     const customer = { id: 123 };
     window.fetch.mockReturnValue(fetchResponseOk(customer));
+    // our second Spy
     const saveSpy = jest.fn();
 
     render(<CustomerForm onSave={saveSpy} />);
-    await act(async () => {
-      submit(form("customer"));
-    });
+
+    submit(form("customer"));
 
     expect(saveSpy).toHaveBeenCalled();
     expect(saveSpy).toHaveBeenCalledWith(customer);
@@ -72,9 +74,8 @@ describe("CustomerForm", () => {
     const saveSpy = jest.fn();
 
     render(<CustomerForm onSave={saveSpy} />);
-    await act(async () => {
-      submit(form("customer"));
-    });
+
+    submit(form("customer"));
 
     expect(saveSpy).not.toHaveBeenCalled();
   });
@@ -83,26 +84,26 @@ describe("CustomerForm", () => {
     const preventDefaultSpy = jest.fn();
 
     render(<CustomerForm />);
-    await act(async () => {
-      submit(form("customer"), {
-        preventDefault: preventDefaultSpy
-      });
+
+    submit(form("customer"), {
+      preventDefault: preventDefaultSpy
     });
 
     expect(preventDefaultSpy).toHaveBeenCalled();
   });
 
-  it.only("renders error message when fetch call fails", async () => {
+  it("renders error message when fetch call fails", async () => {
     window.fetch.mockReturnValue(Promise.resolve({ ok: false }));
 
     render(<CustomerForm />);
-    await act(async () => {
-      submit(form("customer"));
-    });
+
+    submit(form("customer"));
 
     expect(element(".error")).not.toBeNull();
     expect(element(".error").textContent).toMatch("error occurred");
   });
+
+  // it("")
 
   const expectToBeInputFieldOfTypeText = formElement => {
     expect(formElement).not.toBeNull();
