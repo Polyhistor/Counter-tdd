@@ -9,7 +9,7 @@ Enzyme.configure({ adapter: new EnzymeAdapter() });
  * Function that renders the shallow version of our component
  * @function setup
  * @param {object} props - optional props that can be passed into the component
- * @param {any} state - initial state of the setup
+ * @param {object} state - initial state of the setup
  * @returns {ShallowWrapper}
  */
 
@@ -48,8 +48,8 @@ it("renders counter display", () => {
 
 it("counter starts at 0", () => {
   const wrapper = setup();
-  const counter = findByTestAttr(wrapper, "counter");
-  expect(counter.text()).toBe("0");
+  const counterDisplay = findByTestAttr(wrapper, "counter-display");
+  expect(counterDisplay.text()).toContain("0");
 });
 
 it("increments counter by a button click", () => {});

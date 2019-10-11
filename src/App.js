@@ -6,10 +6,13 @@ function App() {
 
   return (
     <div data-test="component-app">
-      <h1 data-test="counter-display">
-        The counter is currently: <span data-test="counter">0</span>{" "}
-      </h1>
-      <button data-test="increment-button">Increment counter</button>
+      <h1 data-test="counter-display">The counter is currently: {counter}</h1>
+      <button
+        onClick={() => setCounter(counter + 1)}
+        data-test="increment-button"
+      >
+        Increment counter
+      </button>
     </div>
   );
 }
